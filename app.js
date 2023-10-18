@@ -5,29 +5,93 @@ const app = express();
 
 const stats = require("./stats");
 // useful error class to throw
+const { BadRequestError } = require("./expressError");
 const { NotFoundError } = require("./expressError");
+const { convertStrNums } = require("./utils.js");
+const { writeToFile } = require("./utils.js");
+
+
+
 
 const MISSING = "Expected key `nums` with comma-separated list of numbers.";
 
 
 /** Finds mean of nums in qs: returns {operation: "mean", result } */
-
-app.get("/mean", function(req,res) {
-  if (req.query === undefined) {
+//TODO: using MISSING instead
+app.get("/mean", function (req, res) {
+  if (req.query?.nums === undefined) {
     throw new BadRequestError("nums are required");
   }
-  
-  const { data } = req.query;
-  const nums = data.split(",");
-  mean = stats.getMean(nums);
+  debugger;
+  const data = req.query.nums;
 
-  return
+  const numStrings = data.split(",");
+
+  const nums = convertStrNums(numStrings);
+
+  value = stats.findMean(nums);
+
+  return res.json({ operation: "mean", value });
 });
+
 /** Finds median of nums in qs: returns {operation: "median", result } */
+app.get("/median", function (req, res) {
+  if (req.query?.nums === undefined) {
+    throw new BadRequestError("nums are required");
+  }
 
+  const data = req.query.nums;
+  console.log(typeof data, data);
+  const numStrings = data.split(",");
 
-/** Finds mode of nums in qs: returns {operation: "mean", result } */
+  const nums = convertStrNums(numStrings);
 
+  value = stats.findMedian(nums);
+
+  return res.json({ operation: "median", value });
+});
+
+/** Finds mode of nums in qs: returns {operation: "mode", result } */
+app.get("/mode", function (req, res) {
+  if (req.query?.nums === undefined) {
+    throw new BadRequestError("nums are required");
+  }
+
+  const data = req.query.nums;
+  console.log(typeof data, data);
+  const numStrings = data.split(",");
+
+  const nums = convertStrNums(numStrings);
+
+  value = stats.findMode(nums);
+
+  return res.json({ operation: "mode", value });
+});
+
+app.get("/all", function (req, res) {
+  if (req.query?.nums === undefined) {
+    throw new BadRequestError("nums are required");
+  }
+
+  const data = req.query.nums;
+  console.log(typeof data, data);
+  const numStrings = data.split(",");
+
+  const nums = convertStrNums(numStrings);
+
+  mode = stats.findMode(nums);
+  mean = stats.findMean(nums);
+  median = stats.findMedian(nums);
+
+  result = { operation: "all", mean, median, mode };
+
+  if (req.query.save === "true") {
+    console.log('here');
+    writeToFile(JSON.stringify(result));
+  }
+
+  return res.json(result);;
+});
 
 /** 404 handler: matches unmatched routes; raises NotFoundError. */
 app.use(function (req, res) {
